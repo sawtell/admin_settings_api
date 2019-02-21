@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\example_module\Plugin\StartupAdmin;
+namespace Drupal\startup_example\Plugin\StartupAdmin;
 
 
 use Drupal\Core\Annotation\Translation;

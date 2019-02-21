@@ -2,8 +2,10 @@
 
 namespace Drupal\startup_admin;
 
-use Drupal\Core\DependencyInjection\ServiceProviderBase;
 use Drupal\Core\Config\ConfigFactory;
+use Drupal\Core\DependencyInjection\ServiceProviderBase;
+use Drupal\Core\Language\LanguageManagerInterface;
+use Drupal\Core\State\StateInterface;
 
 /**
  * Class StartupAdminSettingsService
@@ -14,30 +16,33 @@ class StartupAdminSettingsService extends ServiceProviderBase {
   const CONFIG_PREFIX = 'startup_admin';
   const CONFIG_GROUP = 'settings';
 
-  /**
-   * @var \Drupal\Core\Config\ConfigFactory
-   */
-  private $config;
+  /** @var \Drupal\Core\Config\ConfigFactory */
+  protected $config_factory;
 
-  /**
-   * @var \Drupal\Core\Config\Config|\Drupal\Core\Config\ImmutableConfig
-   */
-  private $systemSite;
+  /** @var \Drupal\Core\State\StateInterface  */
+  protected $state;
+
+  /** @var \Drupal\Core\Language\LanguageManagerInterface */
+  protected $language_manager;
 
   /**
    * StartupAdminSettingsService constructor.
    *
    * Used to setup class variables.
    *
-   * @param \Drupal\Core\Config\ConfigFactory $config
+   * @param \Drupal\Core\Config\ConfigFactory $configFactory
+   * @param \Drupal\Core\State\StateInterface $state
+   * @param \Drupal\Core\Language\LanguageManagerInterface $languageManager
    */
-  public function __construct(ConfigFactory $config) {
-    $this->config = $config;
-    $this->systemSite = $config->get('system.site');
+  public function __construct(ConfigFactory $configFactory, StateInterface $state, LanguageManagerInterface $languageManager) {
+    $this->config_factory = $configFactory;
+    $this->state = $state;
+    $this->language_manager = $languageManager;
   }
 
   /**
    * Get a single setting field that were saved by custom states.
+   * Although a bit unwieldy, use a static function for ease of use elsewhere.
    *
    * @param $name
    * @param string $default
@@ -46,14 +51,15 @@ class StartupAdminSettingsService extends ServiceProviderBase {
    * @return mixed|string
    */
   public function getSetting($name, $default = '', $language = '') {
-    //@todo: use static variable.
+    // @todo: use static variable.
 
     // First try in state
-    // @todo: what if the storage type changes?
-    $setting = $this->getStateSetting($name, $language);
+    $setting = $this->getSettingFromState($name, $language);
+    // Then try config
     if (!$setting) {
-      $setting = $this->getConfigSetting($name, $language);
+      $setting = $this->getSettingFromConfig($name, $language);
     }
+    // Default to default.
     if (!$setting) {
       $setting = $default;
     }
@@ -61,39 +67,72 @@ class StartupAdminSettingsService extends ServiceProviderBase {
     return $setting;
   }
 
-  private function getConfigSetting($name, $language) {
-    return $this->config->get(self::CONFIG_PREFIX . '.' . self::CONFIG_GROUP)->get($name);
-  }
-
   /**
-   * Get settings saved in state.
-   *
    * @param $name
-   * @param $language
-   * @return bool|mixed
+   * @param string $language
+   * @return mixed
    */
-  private function getStateSetting($name, $language) {
-    $setting_key = self::CONFIG_PREFIX . '.';
+  public function getSettingFromState($name, $language = '') {
+    $current_language = $this->language_manager->getCurrentLanguage()->getId();
+    $language = ($language) ? $language : $current_language;
 
-    // If language argument is not set, use the current language.
-    if (!$language) {
-      $language = \Drupal::languageManager()->getCurrentLanguage()->getId();
+    // First try in state
+    $state_key = $this->buildStateKey($language, $name);
+    $setting = $this->state->get($state_key);
+
+    // Default language
+    if (!$setting) {
+      $state_key = $this->buildStateKey('', $name);
+      $setting = $setting = $this->state->get($state_key);
     }
 
-    $setting_key .= $language . '.' . $name;
-    if ($setting = \Drupal::state()->get($setting_key)) {
-      return $setting;
-    }
-    return FALSE;
+    return $setting;
   }
 
   /**
-   * Returns the site name.
-   *
+   * @param $name
+   * @param string $language
    * @return array|mixed|null
    */
-  public function getSiteName() {
-    return $this->systemSite->get('name');
+  public function getSettingFromConfig($name, $language = '') {
+    $current_language = $this->language_manager->getCurrentLanguage()->getId();
+    $language = ($language) ? $language : $current_language;
+
+    $config_key = $this->buildConfigKey($language);
+    $setting = $this->config_factory->get($config_key)->get($name);
+
+    // Config (default language).
+    if (!$setting) {
+      $config_key = $this->buildConfigKey('');
+      $setting = $this->config_factory->get($config_key)->get($name);
+    }
+
+    return $setting;
+  }
+
+  /**
+   * @param $language
+   * @return string
+   */
+  public function buildConfigKey($language) {
+    $config_key = self::CONFIG_PREFIX;
+    $config_key .= ($language) ? '.' . $language : '.' . $this->language_manager->getDefaultLanguage()->getId();
+    return $config_key;
+  }
+
+  /**
+   * @param $language
+   * @param $name
+   * @return string
+   */
+  public function buildStateKey($language, $name) {
+    $state_key = [
+      self::CONFIG_PREFIX,
+      ($language) ? $language : $this->language_manager->getDefaultLanguage()->getId(),
+      $name,
+    ];
+
+    return implode('.', $state_key);
   }
 
   /**

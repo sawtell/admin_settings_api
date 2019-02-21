@@ -1,7 +1,7 @@
 services:
   startup_admin.service:
     class: \Drupal\startup_admin\StartupAdminSettingsService
-    arguments: ['@config.factory']
+    arguments: ['@config.factory', '@state', '@language_manager']
   plugin.manager.startup_admin:
     class: Drupal\startup_admin\Plugin\StartupAdminManager
     parent: default_plugin_manager
