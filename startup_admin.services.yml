@@ -2,3 +2,6 @@ services:
   startup_admin.service:
     class: \Drupal\startup_admin\StartupAdminSettingsService
     arguments: ['@config.factory']
+  plugin.manager.startup_admin:
+    class: Drupal\startup_admin\Plugin\StartupAdminManager
+    parent: default_plugin_manager

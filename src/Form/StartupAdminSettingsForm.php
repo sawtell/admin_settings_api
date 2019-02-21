@@ -5,8 +5,11 @@ namespace Drupal\startup_admin\Form;
 use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Language\Language;
+use Drupal\Core\Link;
 use Drupal\Core\Url;
 use Drupal\startup_admin\Event\FormBuildEvent;
+use Drupal\startup_admin\Plugin\StartupAdminBase;
+use Drupal\startup_admin\StartupAdminSettingsService as AdminService;
 
 /**
  * {@inheritDoc}
@@ -36,6 +39,7 @@ class StartupAdminSettingsForm extends FormBase {
    *
    * @return array
    *   The form structure.
+   * @throws \Drupal\Component\Plugin\Exception\PluginException
    */
   public function buildForm(array $form, FormStateInterface $form_state) {
     $language_manager = \Drupal::getContainer()->get('language_manager');
@@ -80,7 +84,7 @@ EOT;
         else {
           // Print a link to direct the user to the specific language settings.
           $url = Url::fromRoute('startup_admin.settings_form', ['lang' => $language->getId()]);
-          $language_links .= '<li>' . \Drupal\Core\Link::fromTextAndUrl($language->getName(), $url)->toString() . '</li>';
+          $language_links .= '<li>' . Link::fromTextAndUrl($language->getName(), $url)->toString() . '</li>';
         }
       }
       $language_links .= '</ul>';
@@ -94,22 +98,43 @@ EOT;
       '#type' => 'vertical_tabs',
     ];
 
-    // Allow other modules to add to the form.
-    $dispatcher = \Drupal::service('event_dispatcher');
-    $e = new FormBuildEvent($setting_language);
-    $event = $dispatcher->dispatch(FormBuildEvent::FORM_BUILD, $e);
-    if ($form_data = $event->getFormData()) {
-      $form = $form + $form_data;
-
-      $form['submit'] = [
-        '#type' => 'submit',
-        '#value' => $this->t('Save settings'),
-      ];
-    }
-
     $form['#attached']['library'][] = 'startup_admin/form';
 
+    /** @var \Drupal\startup_admin\Plugin\StartupAdminManager $admin_plugin_manager */
+    $admin_plugin_manager = \Drupal::service('plugin.manager.startup_admin');
+    $plugin_definitions = $admin_plugin_manager->getDefinitions();
+    foreach ($plugin_definitions as $plugin_definition) {
+      /** @var \Drupal\startup_admin\Plugin\StartupAdminInterface $plugin */
+      $plugin = $admin_plugin_manager->createInstance($plugin_definition['id']);
+
+      $helper_services = \Drupal::service('startup_admin.service');
+      $group_machine_name = $helper_services::transform($plugin->label());
+      if (!isset($form[$group_machine_name])) {
+        $form[$group_machine_name] = [
+          '#type' => 'details',
+          '#title' => $plugin->label(),
+          '#group' => 'startup_admin',
+          '#tree' => TRUE,
+        ];
+      }
+      $form[$group_machine_name] += $plugin->build();
+    }
+
+    $form['submit'] = [
+      '#type' => 'submit',
+      '#value' => $this->t('Save settings'),
+    ];
+
     return $form;
+  }
+
+  /**
+   * @param array $form
+   * @param \Drupal\Core\Form\FormStateInterface $form_state
+   */
+  public function validateForm(array &$form, FormStateInterface $form_state) {
+    parent::validateForm($form, $form_state);
+    // @todo: Validate the storage type on each field.
   }
 
   /**
@@ -127,10 +152,35 @@ EOT;
     $language = $values['setting_language'];
     unset($values['setting_language']);
 
-    foreach ($values as $key => $value) {
-      $setting_key = 'startup_admin.';
-      $setting_key .= ($language) ? $language . '.' . $key : $key;
-      \Drupal::state()->set($setting_key, $value);
+    foreach ($values as $key => $sub_values) {
+      if (!isset($form[$key])) {
+        continue;
+      }
+
+      if (!array($sub_values)) {
+        continue;
+      }
+
+      foreach ($sub_values as $name => $value) {
+        if (empty($form[$key][$name]['#storage_type'])) {
+          continue;
+        }
+
+        $storage_type = $form[$key][$name]['#storage_type'];
+
+        if ($storage_type == StartupAdminBase::CONFIG) {
+          $setting_key = AdminService::CONFIG_PREFIX . '.' . AdminService::CONFIG_GROUP;
+          $startup_admin_config = $this->configFactory->getEditable($setting_key);
+          $startup_admin_config->set($name, $value);
+          $startup_admin_config->save();
+        }
+
+        if ($storage_type == StartupAdminBase::STATE) {
+          $setting_key = AdminService::CONFIG_PREFIX . '.';
+          $setting_key .= ($language) ? $language . '.' . $name : $name;
+          \Drupal::state()->set($setting_key, $value);
+        }
+      }
     }
   }
 }

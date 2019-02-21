@@ -1,4 +1,5 @@
-.adminimal-admin-toolbar .toolbar-icon-startup-admin-settings:before {
+.adminimal-admin-toolbar .toolbar-icon-startup-admin-settings:before,
+.toolbar .toolbar-icon.toolbar-icon-startup-admin-settings:before {
   background-image: url('../img/settings-work-tool.svg');
 }
 
