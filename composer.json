@@ -1,0 +1,16 @@
+{
+  "name": "sawtell/startup_admin",
+  "description": "This module exposes a number of hooks to allow other modules to define custom site settings.",
+  "type": "drupal-module",
+  "license": "GPL-2.0+",
+  "minimum-stability": "dev",
+  "homepage": "https://github.com/sawtell/startup_admin",
+  "authors": [
+    {
+      "name": "Louis Sawtell",
+      "homepage": "https://www.drupal.org/u/ls206",
+      "role": "Maintainer"
+    }
+  ],
+  "require": {}
+}
