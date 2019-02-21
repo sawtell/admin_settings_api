@@ -110,6 +110,10 @@ EOT;
       /** @var \Drupal\startup_admin\Plugin\StartupAdminInterface $plugin */
       $plugin = $admin_plugin_manager->createInstance($plugin_definition['id']);
 
+      if (!$plugin->checkAccess()) {
+        continue;
+      }
+
       $group_machine_name = AdminService::transform($plugin->label());
       if (!isset($form[$group_machine_name])) {
         $form[$group_machine_name] = [
@@ -175,7 +179,7 @@ EOT;
         $this->thereCanBeOnlyOne($storage_type, $name, $language);
 
         if ($storage_type == StartupAdminBase::CONFIG) {
-          $config_key = $this->buildConfigKey($language);
+          $config_key = $this->admin_service->buildConfigKey($language);
 
           $startup_admin_config = $this->configFactory->getEditable($config_key);
           $startup_admin_config->set($name, $value);
@@ -183,7 +187,7 @@ EOT;
         }
 
         if ($storage_type == StartupAdminBase::STATE) {
-          $state_key = $this->buildStateKey($language, $name);
+          $state_key = $this->admin_service->buildStateKey($language, $name);
 
           $this->state->set($state_key, $value);
         }

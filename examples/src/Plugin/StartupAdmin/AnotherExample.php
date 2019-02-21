@@ -12,7 +12,7 @@ use Drupal\startup_admin\Plugin\StartupAdminBase;
  *
  * @StartupAdmin(
  *   id = "another_example_admin_plugin",
- *   label = @Translation("Example plugin"),
+ *   label = @Translation("Another example plugin"),
  * )
  */
 class AnotherExample extends StartupAdminBase {
@@ -45,5 +45,9 @@ class AnotherExample extends StartupAdminBase {
     ];
 
     return $formComponent;
+  }
+
+  public function checkAccess() {
+    return \Drupal::currentUser()->hasPermission('custom permission to wreak havoc');
   }
 }

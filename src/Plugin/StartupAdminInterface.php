@@ -18,4 +18,9 @@ interface StartupAdminInterface extends PluginInspectionInterface {
    * @return array
    */
   public function build();
+
+  /**
+   * @return boolean
+   */
+  public function checkAccess();
 }
