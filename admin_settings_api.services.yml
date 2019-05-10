@@ -1,0 +1,7 @@
+services:
+  admin_settings_api.service:
+    class: \Drupal\admin_settings_api\AdminSettingsAPIService
+    arguments: ['@config.factory', '@state', '@language_manager']
+  plugin.manager.admin_settings_api:
+    class: Drupal\admin_settings_api\Plugin\AdminSettingsAPIManager
+    parent: default_plugin_manager

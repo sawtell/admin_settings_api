@@ -1,0 +1,8 @@
+<?php
+
+/**
+ * Implements hook_toolbar_alter
+ */
+function admin_settings_api_toolbar_alter(&$items) {
+  $items['administration']['#attached']['library'][] = 'admin_settings_api/admin';
+}

@@ -1,18 +1,18 @@
 <?php
 
-namespace Drupal\startup_admin\Annotation;
+namespace Drupal\admin_settings_api\Annotation;
 
 use Drupal\Component\Annotation\Plugin;
 
 /**
- * Defines a Startup admin plugin item annotation object.
+ * Defines a admin settings API plugin item annotation object.
  *
- * @see \Drupal\startup_admin\Plugin\StartupAdminManager
+ * @see \Drupal\admin_settings_api\Plugin\AdminSettingsAPIManager
  * @see plugin_api
  *
  * @Annotation
  */
-class StartupAdmin extends Plugin {
+class AdminSettingsAPI extends Plugin {
 
 
   /**

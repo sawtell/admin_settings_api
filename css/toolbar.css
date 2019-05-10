@@ -1,12 +1,12 @@
-.adminimal-admin-toolbar .toolbar-icon-startup-admin-settings:before,
-.toolbar .toolbar-icon.toolbar-icon-startup-admin-settings:before {
+.adminimal-admin-toolbar .toolbar-icon-admin-settings-api-settings:before,
+.toolbar .toolbar-icon.toolbar-icon-admin-settings-api-settings:before {
   background-image: url('../img/settings-work-tool.svg');
 }
 
-.adminimal-admin-toolbar .toolbar-icon-startup-admin-settings:hover:before {
+.adminimal-admin-toolbar .toolbar-icon-admin-settings-api-settings:hover:before {
   background-image: url('../img/settings-work-tool-white.svg');
 }
 
-.adminimal-admin-toolbar .toolbar-icon-startup-admin-settings:hover {
+.adminimal-admin-toolbar .toolbar-icon-admin-settings-api-settings:hover {
   color: #fff !important;
 }

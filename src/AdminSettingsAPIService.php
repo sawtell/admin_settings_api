@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\startup_admin;
+namespace Drupal\admin_settings_api;
 
 use Drupal\Core\Config\ConfigFactory;
 use Drupal\Core\DependencyInjection\ServiceProviderBase;
@@ -8,12 +8,12 @@ use Drupal\Core\Language\LanguageManagerInterface;
 use Drupal\Core\State\StateInterface;
 
 /**
- * Class StartupAdminSettingsService
+ * Class AdminSettingsAPIService
  *
- * @package Drupal\startup_admin
+ * @package Drupal\admin_settings_api
  */
-class StartupAdminSettingsService extends ServiceProviderBase {
-  const CONFIG_PREFIX = 'startup_admin';
+class AdminSettingsAPIService extends ServiceProviderBase {
+  const CONFIG_PREFIX = 'admin_settings_api';
   const CONFIG_GROUP = 'settings';
 
   /** @var \Drupal\Core\Config\ConfigFactory */
@@ -26,7 +26,7 @@ class StartupAdminSettingsService extends ServiceProviderBase {
   protected $language_manager;
 
   /**
-   * StartupAdminSettingsService constructor.
+   * AdminSettingsAPIService constructor.
    *
    * Used to setup class variables.
    *

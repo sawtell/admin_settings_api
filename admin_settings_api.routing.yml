@@ -1,0 +1,7 @@
+admin_settings_api.settings_form:
+  path: '/admin/settings'
+  defaults:
+    _form: '\Drupal\admin_settings_api\Form\AdminSettingsAPIForm'
+    _title: 'Site settings'
+  requirements:
+    _permission: 'admin_settings_api administer settings'

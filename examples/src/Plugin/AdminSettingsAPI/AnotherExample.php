@@ -1,21 +1,21 @@
 <?php
 
-namespace Drupal\startup_example\Plugin\StartupAdmin;
+namespace Drupal\example\Plugin\AdminSettingsAPI;
 
 
 use Drupal\Core\Annotation\Translation;
-use Drupal\startup_admin\Annotation\StartupAdmin;
-use Drupal\startup_admin\Plugin\StartupAdminBase;
+use Drupal\admin_settings_api\Annotation\AdminSettingsAPI;
+use Drupal\admin_settings_api\Plugin\AdminSettingsAPIBase;
 
 /**
  * Adds component to admin form
  *
- * @StartupAdmin(
+ * @AdminSettingsAPI(
  *   id = "another_example_admin_plugin",
  *   label = @Translation("Another example plugin"),
  * )
  */
-class AnotherExample extends StartupAdminBase {
+class AnotherExample extends AdminSettingsAPIBase {
 
   /**
    * The form group label

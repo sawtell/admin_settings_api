@@ -1,13 +1,13 @@
 <?php
 
-namespace Drupal\startup_admin\Plugin;
+namespace Drupal\admin_settings_api\Plugin;
 
 use Drupal\Component\Plugin\PluginInspectionInterface;
 
 /**
- * Defines an interface for Startup admin plugin plugins.
+ * Defines an interface for admin settings API plugin plugins.
  */
-interface StartupAdminInterface extends PluginInspectionInterface {
+interface AdminSettingsAPIInterface extends PluginInspectionInterface {
 
   /**
    * @return string

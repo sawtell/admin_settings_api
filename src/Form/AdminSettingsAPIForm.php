@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\startup_admin\Form;
+namespace Drupal\admin_settings_api\Form;
 
 use Drupal\Core\DependencyInjection\ContainerInjectionInterface;
 use Drupal\Core\Form\FormBase;
@@ -10,28 +10,29 @@ use Drupal\Core\Language\LanguageManagerInterface;
 use Drupal\Core\Link;
 use Drupal\Core\State\StateInterface;
 use Drupal\Core\Url;
-use Drupal\startup_admin\Plugin\StartupAdminBase;
-use Drupal\startup_admin\StartupAdminSettingsService as AdminService;
-use Drupal\startup_admin\StartupAdminSettingsService;
+use Drupal\admin_settings_api\Plugin\AdminSettingsAPIBase;
+use Drupal\admin_settings_api\AdminSettingsAPIService as AdminService;
+use Drupal\admin_settings_api\AdminSettingsAPIService;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
  * {@inheritDoc}
  */
-class StartupAdminSettingsForm extends FormBase implements ContainerInjectionInterface {
+class AdminSettingsAPIForm extends FormBase implements ContainerInjectionInterface {
 
   protected $admin_service;
   protected $language_manager;
   protected $state;
 
   /**
-   * StartupAdminSettingsForm constructor.
-   * @param \Drupal\startup_admin\StartupAdminSettingsService $adminService
+   * AdminSettingsAPIForm constructor.
+   *
+   * @param \Drupal\admin_settings_api\AdminSettingsAPIService $adminService
    * @param \Drupal\Core\Language\LanguageManagerInterface $languageManager
    * @param \Drupal\Core\State\StateInterface $state
    */
   public function __construct(
-    StartupAdminSettingsService $adminService,
+    AdminSettingsAPIService $adminService,
     LanguageManagerInterface $languageManager,
     StateInterface $state)
   {
@@ -42,11 +43,12 @@ class StartupAdminSettingsForm extends FormBase implements ContainerInjectionInt
 
   /**
    * @param \Symfony\Component\DependencyInjection\ContainerInterface $container
-   * @return \Drupal\Core\Form\FormBase|\Drupal\startup_admin\Form\StartupAdminSettingsForm
+   *
+   * @return \Drupal\Core\Form\FormBase|\Drupal\admin_settings_api\Form\AdminSettingsAPIForm
    */
   public static function create(ContainerInterface $container) {
     return new static(
-      $container->get('startup_admin.service'),
+      $container->get('admin_settings_api.service'),
       $container->get('language_manager'),
       $container->get('state')
     );
@@ -59,7 +61,7 @@ class StartupAdminSettingsForm extends FormBase implements ContainerInjectionInt
    *   The unique string identifying the form.
    */
   public function getFormId() {
-    return 'startup_admin_settings_form';
+    return 'admin_settings_api_settings_form';
   }
 
   /**
@@ -83,7 +85,7 @@ class StartupAdminSettingsForm extends FormBase implements ContainerInjectionInt
     $form_intro = '<h2>' . $system_config->get('name') . ' settings</h2>';
     $form_intro .= <<<EOT
 <p>Here you can configure site specific settings<br>
-<small>If you are a developer and want to add to this settings form please see: <code>startup_admin/examples</code></small></p>
+<small>If you are a developer and want to add to this settings form please see: <code>admin_settings_api/examples</code></small></p>
 EOT;
 
     $form['intro'] = [
@@ -95,19 +97,19 @@ EOT;
     // Create links for the different language settings forms.
     $this->buildLanguageLinks($form);
 
-    $form['startup_admin'] = [
+    $form['admin_settings_api'] = [
       '#type' => 'vertical_tabs',
     ];
 
-    $form['#attached']['library'][] = 'startup_admin/form';
+    $form['#attached']['library'][] = 'admin_settings_api/form';
 
     // Pull any configuration settings from other modules via Plugin definitions.
 
-    /** @var \Drupal\startup_admin\Plugin\StartupAdminManager $admin_plugin_manager */
-    $admin_plugin_manager = \Drupal::service('plugin.manager.startup_admin');
+    /** @var \Drupal\admin_settings_api\Plugin\AdminSettingsAPIManager $admin_plugin_manager */
+    $admin_plugin_manager = \Drupal::service('plugin.manager.admin_settings_api');
     $plugin_definitions = $admin_plugin_manager->getDefinitions();
     foreach ($plugin_definitions as $plugin_definition) {
-      /** @var \Drupal\startup_admin\Plugin\StartupAdminInterface $plugin */
+      /** @var \Drupal\admin_settings_api\Plugin\AdminSettingsAPIInterface $plugin */
       $plugin = $admin_plugin_manager->createInstance($plugin_definition['id']);
 
       if (!$plugin->checkAccess()) {
@@ -119,7 +121,7 @@ EOT;
         $form[$group_machine_name] = [
           '#type' => 'details',
           '#title' => $plugin->label(),
-          '#group' => 'startup_admin',
+          '#group' => 'admin_settings_api',
           '#tree' => TRUE, // Make sure values are nested.
         ];
       }
@@ -178,15 +180,15 @@ EOT;
         // What if the storage type has been changed?
         $this->thereCanBeOnlyOne($storage_type, $name, $language);
 
-        if ($storage_type == StartupAdminBase::CONFIG) {
+        if ($storage_type == AdminSettingsAPIBase::CONFIG) {
           $config_key = $this->admin_service->buildConfigKey($language);
 
-          $startup_admin_config = $this->configFactory->getEditable($config_key);
-          $startup_admin_config->set($name, $value);
-          $startup_admin_config->save();
+          $admin_settings_api_config = $this->configFactory->getEditable($config_key);
+          $admin_settings_api_config->set($name, $value);
+          $admin_settings_api_config->save();
         }
 
-        if ($storage_type == StartupAdminBase::STATE) {
+        if ($storage_type == AdminSettingsAPIBase::STATE) {
           $state_key = $this->admin_service->buildStateKey($language, $name);
 
           $this->state->set($state_key, $value);
@@ -204,7 +206,7 @@ EOT;
    */
   protected function thereCanBeOnlyOne($storage_type, $name, $language) {
     // If now saving as config.
-    if ($storage_type == StartupAdminBase::CONFIG) {
+    if ($storage_type == AdminSettingsAPIBase::CONFIG) {
       // Check for value stored as state.
       if ($value = $this->admin_service->getSettingFromState($name, $language)) {
         $state_key = $this->admin_service->buildStateKey($language, $name);
@@ -212,7 +214,7 @@ EOT;
       }
     }
     // If now saving as state.
-    if ($storage_type == StartupAdminBase::STATE) {
+    if ($storage_type == AdminSettingsAPIBase::STATE) {
       // Check for value stored as config.
       if ($value = $this->admin_service->getSettingFromConfig($name, $language)) {
         $config_key = $this->admin_service->buildConfigKey($language);
@@ -248,7 +250,7 @@ EOT;
         }
         else {
           // Print a link to direct the user to the specific language settings.
-          $url = Url::fromRoute('startup_admin.settings_form', [], ['language' => $language]);
+          $url = Url::fromRoute('admin_settings_api.settings_form', [], ['language' => $language]);
           $language_links .= '<li>' . Link::fromTextAndUrl($language->getName(), $url)->toString() . '</li>';
         }
       }

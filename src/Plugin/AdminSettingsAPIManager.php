@@ -1,19 +1,19 @@
 <?php
 
-namespace Drupal\startup_admin\Plugin;
+namespace Drupal\admin_settings_api\Plugin;
 
 use Drupal\Core\Plugin\DefaultPluginManager;
 use Drupal\Core\Cache\CacheBackendInterface;
 use Drupal\Core\Extension\ModuleHandlerInterface;
 
 /**
- * Provides the Startup admin plugin plugin manager.
+ * Provides the admin settings API plugin plugin manager.
  */
-class StartupAdminManager extends DefaultPluginManager {
+class AdminSettingsAPIManager extends DefaultPluginManager {
 
 
   /**
-   * Constructs a new StartupAdminPluginManager object.
+   * Constructs a new AdminSettingsAPIPluginManager object.
    *
    * @param \Traversable $namespaces
    *   An object that implements \Traversable which contains the root paths
@@ -24,9 +24,9 @@ class StartupAdminManager extends DefaultPluginManager {
    *   The module handler to invoke the alter hook with.
    */
   public function __construct(\Traversable $namespaces, CacheBackendInterface $cache_backend, ModuleHandlerInterface $module_handler) {
-    parent::__construct('Plugin/StartupAdmin', $namespaces, $module_handler, 'Drupal\startup_admin\Plugin\StartupAdminInterface', 'Drupal\startup_admin\Annotation\StartupAdmin');
+    parent::__construct('Plugin/AdminSettingsAPI', $namespaces, $module_handler, 'Drupal\admin_settings_api\Plugin\AdminSettingsAPIInterface', 'Drupal\admin_settings_api\Annotation\AdminSettingsAPI');
 
-    $this->alterInfo('startup_admin_startup_admin_plugin_info');
-    $this->setCacheBackend($cache_backend, 'startup_admin_startup_admin_plugin_plugins');
+    $this->alterInfo('admin_settings_api_admin_settings_api_plugin_info');
+    $this->setCacheBackend($cache_backend, 'admin_settings_api_admin_settings_api_plugin_plugins');
   }
 }
